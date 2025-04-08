@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 // var indexRouter = require('./api/routes/index');
-var usersRoutes = require('./api/routes/userRoutes');
+var usersRoutes = require('./api/routes/user/userRoutes');
 
 connectDB(); // 初始化数据库连接
 var app = express();
