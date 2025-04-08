@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 // var indexRouter = require('./api/routes/index');
-var usersRouter = require('./api/routes/userRoutes');
+var usersRoutes = require('./api/routes/userRoutes');
 
 connectDB(); // 初始化数据库连接
 var app = express();
@@ -23,7 +23,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', usersRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
