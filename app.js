@@ -6,11 +6,10 @@ var logger = require('morgan');
 
 // DB
 var connectDB = require('./config/db')
-var client = import('./config/redisclient.js'); // 引入 Redis 客户端
+import('./config/redisclient.js'); // 引入 Redis 客户端
 
 // var indexRouter = require('./api/routes/index');
 var usersRoutes = require('./api/routes/users/userRoutes');
-// 房间信息可能还是得写入redis
 // var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 
 connectDB(); // 初始化数据库连接

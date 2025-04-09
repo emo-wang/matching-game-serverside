@@ -1,6 +1,6 @@
 import { createClient } from 'redis';
 
-const client = createClient({
+export const client = createClient({
     username: 'default',
     password: '2a4RdGbdcgvIAhACc9yDB2IqLlGLkSoS',
     socket: {
@@ -11,8 +11,8 @@ const client = createClient({
 
 client.on('error', err => console.log('Redis Client Error', err));
 
-await client.connect();
+client.connect();
 
-await client.set('foo', 'bar');
-const result = await client.get('foo');
-console.log(result)  // >>> bar
+// await client.set('foo', 'bar');
+// const result = await client.get('foo');
+// console.log(result)  // >>> bar
