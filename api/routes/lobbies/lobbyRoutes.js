@@ -7,5 +7,6 @@ router.get('/', lobbyController.getAllLobbies);
 router.get('/:id', lobbyController.getLobby);
 router.put('/:id', lobbyController.updateLobby);
 router.delete('/:id', lobbyController.deleteLobby);
+router.delete('/',lobbyController.deleteAllLobbies)
 
 module.exports = router;

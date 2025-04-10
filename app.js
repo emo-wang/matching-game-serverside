@@ -5,15 +5,19 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var connectDB = require('./config/db')
-var {redisClient} = require('./config/redisclient');
+var { redisClient } = require('./config/redisClient.js');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
+
+// 初始化websocket连接
+import('./api/ws/gameWs.js')
 
 // 初始化数据库连接
 connectDB();
 // 初始化redis连接
 redisClient.on('error', err => console.log('Redis Client Error', err));
 redisClient.connect();
+
 
 //创建express实例
 var app = express();

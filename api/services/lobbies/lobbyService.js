@@ -21,10 +21,15 @@ async function deleteLobby(id) {
     return await Lobby.findByIdAndDelete(id);
 };
 
+async function deleteAllLobbies() {
+    return await Lobby.deleteMany({});
+}
+
 module.exports = {
     createLobby,
     getAllLobbies,
     getLobby,
     updateLobby,
-    deleteLobby
+    deleteLobby,
+    deleteAllLobbies
 }

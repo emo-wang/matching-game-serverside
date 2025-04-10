@@ -56,10 +56,23 @@ async function deleteLobby(req, res) {
     }
 };
 
+async function deleteAllLobbies(req, res) {
+    try {
+        const lobby = await lobbyService.deleteAllLobbies();
+        if (!lobby) {
+            return res.status(404).send();
+        }
+        res.status(200).send({ message: 'All lobbies deleted successfully' });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
 module.exports = {
     createLobby,
     getAllLobbies,
     getLobby,
     updateLobby,
     deleteLobby,
+    deleteAllLobbies,
 }
