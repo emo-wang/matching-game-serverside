@@ -1,8 +1,10 @@
 const lobbyService = require('../../services/lobbies/lobbyService');
+// var { redisClient } = require('../../../config/redisclient.js');
 
 async function createLobby(req, res) {
     try {
         const lobby = await lobbyService.createLobby(req.body);
+        // await redisClient.set('hello', 'world')
         res.status(201).send(lobby);
     } catch (error) {
         res.status(400).send(error);

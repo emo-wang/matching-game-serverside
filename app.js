@@ -4,15 +4,18 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-// DB
 var connectDB = require('./config/db')
-import('./config/redisclient.js'); // 引入 Redis 客户端
-
-// var indexRouter = require('./api/routes/index');
+var {redisClient} = require('./config/redisclient');
 var usersRoutes = require('./api/routes/users/userRoutes');
-// var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
+var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 
-connectDB(); // 初始化数据库连接
+// 初始化数据库连接
+connectDB();
+// 初始化redis连接
+redisClient.on('error', err => console.log('Redis Client Error', err));
+redisClient.connect();
+
+//创建express实例
 var app = express();
 
 
@@ -27,7 +30,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/users', usersRoutes);
-// app.use('/lobbies', lobbiesRoutes);
+app.use('/lobbies', lobbiesRoutes);
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
