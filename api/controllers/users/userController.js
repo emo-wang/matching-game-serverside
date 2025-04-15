@@ -54,10 +54,23 @@ async function deleteUser(req, res) {
     }
 }
 
+async function deleteAllUsers(req, res) {
+    try {
+        const users = await userService.deleteAllUsers();
+        if (!users) {
+            return res.status(404).send();
+        }
+        res.status(204).send("All users deleted successfully");
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     createUser,
     getAllUsers,
     getUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    deleteAllUsers
 };

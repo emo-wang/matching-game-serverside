@@ -20,10 +20,15 @@ async function deleteUser(id) {
     return User.findByIdAndDelete(id);
 }
 
+async function deleteAllUsers() {
+    return User.deleteMany({});
+}
+
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    deleteAllUsers
 };

@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 
 const LobbySchema = new mongoose.Schema({
-    name: {
+    roomName: {
         type: String,
         required: true,
+    },
+    roomOwnerId: {
+        type: String, // player的uuid
+        required: true
     },
     maxPlayerCount: {
         type: Number,
@@ -11,10 +15,10 @@ const LobbySchema = new mongoose.Schema({
         max: 6,
         min: 1
     },
-    playerCount:
+    playerList:
     {
-        type: Number,
-        default: 1
+        type: Array,
+        default: [] // 存放player的uuid
     },
     isPlaying: {
         type: Boolean,
@@ -23,6 +27,10 @@ const LobbySchema = new mongoose.Schema({
     isPrivate: {
         type: Boolean,
         default: false
+    },
+    password: {
+        type: String,
+        default: null
     },
     mapType: {
         type: Number,
