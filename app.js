@@ -9,6 +9,7 @@ var connectDB = require('./config/db')
 var { redisClient } = require('./config/redisClient.js');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
+var authRoutes = require('./api/routes/auth/authRoutes')
 
 // 初始化websocket连接
 import('./api/ws/gameWs.js')
@@ -46,6 +47,7 @@ app.use(cors({
 
 app.use('/users', usersRoutes);
 app.use('/lobbies', lobbiesRoutes);
+app.use('/auth', authRoutes);
 
 
 // catch 404 and forward to error handler

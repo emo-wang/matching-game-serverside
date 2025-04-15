@@ -1,6 +1,8 @@
 const User = require('../../models/users/userModel');
+const bcrypt = require('bcryptjs');
 
 async function createUser(userData) {
+    userData.password = bcrypt.hashSync(userData.password, 10);
     return User.create(userData);
 }
 
@@ -13,6 +15,7 @@ async function getUserById(id) {
 }
 
 async function updateUser(id, updateData) {
+    updateData.password = bcrypt.hashSync(updateData.password, 10);
     return User.findByIdAndUpdate(id, updateData, { new: true });
 }
 
