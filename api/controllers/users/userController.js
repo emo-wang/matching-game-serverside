@@ -31,8 +31,15 @@ async function getUser(req, res) {
 }
 
 async function updateUser(req, res) {
+    const { id } = req.params;           // 前端传的 id
+    const currentUserId = req.user.userId; // 从 token 拿的 id
+
+    if (id !== currentUserId) {
+        return res.status(403).json({ message: '不能更改别人的信息' });
+    }
+
     try {
-        const user = await userService.updateUser(req.params.id, req.body);
+        const user = await userService.updateUser(id, req.body);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -43,6 +50,13 @@ async function updateUser(req, res) {
 }
 
 async function deleteUser(req, res) {
+    const { id } = req.params;           // 前端传的 id
+    const currentUserId = req.user.userId; // 从 token 拿的 id
+
+    if (id !== currentUserId) {
+        return res.status(403).json({ message: '不能删除别人的信息' });
+    }
+    
     try {
         const user = await userService.deleteUser(req.params.id);
         if (!user) {

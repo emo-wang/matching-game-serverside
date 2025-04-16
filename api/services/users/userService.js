@@ -1,6 +1,8 @@
 const User = require('../../models/users/userModel');
 const bcrypt = require('bcryptjs');
 
+const SECRET = process.env.JWT_SECRET
+
 async function createUser(userData) {
     userData.password = bcrypt.hashSync(userData.password, 10);
     return User.create(userData);
@@ -11,12 +13,19 @@ async function getAllUsers() {
 }
 
 async function getUserById(id) {
-    return User.findById(id);
+    return User.findById(id).select('userName');
 }
 
-async function updateUser(id, updateData) {
-    updateData.password = bcrypt.hashSync(updateData.password, 10);
-    return User.findByIdAndUpdate(id, updateData, { new: true });
+
+async function updateUser(id) {
+    if (req.body.password) {
+        req.body.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    return User.findByIdAndUpdate(id, req.body, {
+        new: true,
+        runValidators: true
+    }).select('-password');
 }
 
 async function deleteUser(id) {

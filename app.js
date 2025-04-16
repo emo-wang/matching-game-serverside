@@ -4,12 +4,16 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
+require('dotenv').config();
+
 
 var connectDB = require('./config/db')
 var { redisClient } = require('./config/redisClient.js');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 var authRoutes = require('./api/routes/auth/authRoutes')
+
+// dotenv 读取.env 文件中的环境变量
 
 // 初始化websocket连接
 import('./api/ws/gameWs.js')
@@ -20,10 +24,8 @@ connectDB();
 redisClient.on('error', err => console.log('Redis Client Error', err));
 redisClient.connect();
 
-
 //创建express实例
 var app = express();
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -40,7 +42,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use(cors());
 
 app.use(cors({
-    origin: 'http://localhost:7456',
+    // origin: 'http://localhost:7456',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
