@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../../controllers/users/userController');
-const { authMiddleware } = require('../../../public/middlewares/auth');
+const { authMiddleware } = require('../../../public/middlewares/authMiddleware');
 
 router.post('/', userController.createUser); // 创建新用户
 router.get('/', userController.getAllUsers); // 获取所有用户信息

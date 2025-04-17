@@ -1,11 +1,13 @@
 const User = require('../../models/users/userModel');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const SECRET = process.env.JWT_SECRET
 
 async function createUser(userData) {
     userData.password = bcrypt.hashSync(userData.password, 10);
-    return User.create(userData);
+    const user = await User.create(userData);
+    return User.findById(user._id).select('-password');
 }
 
 async function getAllUsers() {
@@ -17,15 +19,24 @@ async function getUserById(id) {
 }
 
 
-async function updateUser(id) {
-    if (req.body.password) {
-        req.body.password = await bcrypt.hash(req.body.password, 10);
+async function updateUser(id, userData) {
+
+    const user = await User.findById(id);
+
+    let newToken = ""
+    if (userData.password && !bcrypt.compareSync(userData.password, user.password)) {
+        userData.password = await bcrypt.hash(userData.password, 10);
+        // 重签 token 但旧token还能用，没什么意义
+        newToken = jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '24h' });
     }
 
-    return User.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true
-    }).select('-password');
+    const updatedUser = await User.findByIdAndUpdate(
+        id,
+        userData,
+        { new: true, runValidators: true }
+    ).select('-password'); // 安全脱敏
+
+    return updatedUser;
 }
 
 async function deleteUser(id) {

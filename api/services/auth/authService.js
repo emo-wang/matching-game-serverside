@@ -14,7 +14,13 @@ async function login(userData) {
         throw new Error('用户名或密码错误');
     }
 
-    return jwt.sign({ userName }, SECRET, { expiresIn: '24h' });
+    const updatedUser = await User.findOne({ userName }).select('-password');
+
+    // sign后面的是token包含的一些信息
+    return {
+        token: jwt.sign({ userId: user._id }, SECRET, { expiresIn: '24h' }),
+        user: updatedUser
+    }
 };
 
 module.exports = {

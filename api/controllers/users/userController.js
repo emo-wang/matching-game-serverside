@@ -31,6 +31,7 @@ async function getUser(req, res) {
 }
 
 async function updateUser(req, res) {
+
     const { id } = req.params;           // 前端传的 id
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
