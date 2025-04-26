@@ -1,22 +1,27 @@
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
+var http = require('http');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-require('dotenv').config();
-
-
+var wsManager = require('./api/ws/wsManager.js');
 var connectDB = require('./config/db')
 var { redisClient } = require('./config/redisClient.js');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 var authRoutes = require('./api/routes/auth/authRoutes')
 
-// dotenv 读取.env 文件中的环境变量
+//创建express实例
+var app = express();
 
-// 初始化websocket连接
-import('./api/ws/gameWs.js')
+// 创建ws实例
+const wsServer = http.createServer(app);
+const wss = wsManager.setWSS(wsServer);
+wsServer.listen(3001, () => {
+    console.log('HTTP+WebSocket 服务运行于 http://localhost:3001');
+});
 
 // 初始化数据库连接
 connectDB();
@@ -24,8 +29,6 @@ connectDB();
 redisClient.on('error', err => console.log('Redis Client Error', err));
 redisClient.connect();
 
-//创建express实例
-var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -39,8 +42,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 // CORS handler
-// app.use(cors());
-
 app.use(cors({
     // origin: 'http://localhost:7456',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],

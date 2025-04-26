@@ -5,8 +5,8 @@ const LobbySchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    roomOwnerId: {
-        type: String, // player的uuid
+    roomOwner: {
+        type: Object,
         required: true
     },
     maxPlayerCount: {
@@ -18,7 +18,7 @@ const LobbySchema = new mongoose.Schema({
     playerList:
     {
         type: Array,
-        default: [] // 存放player的uuid
+        default: []
     },
     isPlaying: {
         type: Boolean,

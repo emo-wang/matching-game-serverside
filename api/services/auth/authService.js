@@ -19,7 +19,8 @@ async function login(userData) {
     // sign后面的是token包含的一些信息
     return {
         token: jwt.sign({ userId: user._id }, SECRET, { expiresIn: '24h' }),
-        user: updatedUser
+        user: updatedUser,
+        expiresIn: 24 * 60 * 60
     }
 };
 

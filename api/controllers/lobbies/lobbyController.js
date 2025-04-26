@@ -1,4 +1,5 @@
-const lobbyService = require('../../services/lobbies/lobbyService');
+var lobbyService = require('../../services/lobbies/lobbyService');
+var Lobby = require('../../models/lobbies/lobbyModel');
 // var { redisClient } = require('../../../config/redisclient.js');
 
 async function createLobby(req, res) {
@@ -33,6 +34,13 @@ async function getLobby(req, res) {
 };
 
 async function updateLobby(req, res) {
+    const id = req.body.roomOwner._id;  // 前端传的 id
+    const currentUserId = req.user.userId; // 从 token 拿的 id
+
+    if (id !== currentUserId) {
+        return res.status(403).json({ message: '您不是房主' });
+    }
+
     try {
         const lobby = await lobbyService.updateLobby(req.params.id, req.body);
         if (!lobby) {
@@ -45,6 +53,14 @@ async function updateLobby(req, res) {
 };
 
 async function deleteLobby(req, res) {
+    const lobby = await Lobby.findById(req.params.id);
+    const id = lobby.roomOwner._id;  // 前端传的 id
+    const currentUserId = req.user.userId; // 从 token 拿的 id
+
+    if (id !== currentUserId) {
+        return res.status(403).json({ message: '您不是房主' });
+    }
+
     try {
         const lobby = await lobbyService.deleteLobby(req.params.id);
         if (!lobby) {

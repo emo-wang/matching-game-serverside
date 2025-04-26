@@ -1,4 +1,4 @@
-const Lobby = require('../../models/lobbies/lobbyModel');
+var Lobby = require('../../models/lobbies/lobbyModel');
 
 async function createLobby(lobbyData) {
     const lobby = new Lobby(lobbyData);
