@@ -1,11 +1,9 @@
 var lobbyService = require('../../services/lobbies/lobbyService');
-var Lobby = require('../../models/lobbies/lobbyModel');
-// var { redisClient } = require('../../../config/redisclient.js');
+var redisManager = require('../../../public/javascripts/redisManager')
 
 async function createLobby(req, res) {
     try {
         const lobby = await lobbyService.createLobby(req.body);
-        // await redisClient.set('hello', 'world')
         res.status(201).send(lobby);
     } catch (error) {
         res.status(400).send(error);
@@ -34,7 +32,7 @@ async function getLobby(req, res) {
 };
 
 async function updateLobby(req, res) {
-    const id = req.body.roomOwner._id;  // 前端传的 id
+    const id = req.body.ownerId;  // 前端传的 id
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
@@ -53,8 +51,8 @@ async function updateLobby(req, res) {
 };
 
 async function deleteLobby(req, res) {
-    const lobby = await Lobby.findById(req.params.id);
-    const id = lobby.roomOwner._id;  // 前端传的 id
+    const lobby = await redisManager.get(req.params.id);
+    const id = lobby.ownerId;  // 前端传的 id
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {

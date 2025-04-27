@@ -38,8 +38,5 @@ module.exports = {
             }
         });
     },
-
-    LobbyRoomsUpdate: (data) => {
-
-    }
+    
 };

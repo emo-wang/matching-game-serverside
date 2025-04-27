@@ -8,13 +8,14 @@ var logger = require('morgan');
 var cors = require('cors');
 var wsManager = require('./api/ws/wsManager.js');
 var connectDB = require('./config/db')
-var { redisClient } = require('./config/redisClient.js');
+var redisManager = require('./public/javascripts/redisManager');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 var authRoutes = require('./api/routes/auth/authRoutes')
 
 //创建express实例
 var app = express();
+
 
 // 创建ws实例
 const wsServer = http.createServer(app);
@@ -26,8 +27,8 @@ wsServer.listen(3001, () => {
 // 初始化数据库连接
 connectDB();
 // 初始化redis连接
-redisClient.on('error', err => console.log('Redis Client Error', err));
-redisClient.connect();
+// redisManager.set('foo', 'bar');
+
 
 
 // view engine setup

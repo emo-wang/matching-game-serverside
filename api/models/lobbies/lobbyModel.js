@@ -1,43 +1,29 @@
 const mongoose = require('mongoose');
 
 const LobbySchema = new mongoose.Schema({
-    roomName: {
-        type: String,
-        required: true,
+    roomId: { type: String, required: true, unique: true },       // 房间号（6位随机数或UUID）
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // 房主用户ID
+    players: [{
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        nickname: String,
+        avatar: String,
+        isReady: { type: Boolean, default: false },
+        score: { type: Number, default: 0 }
+    }],
+    maxPlayers: { type: Number, default: 6 },                      // 最大人数，默认4人
+    status: { type: String, enum: ['waiting', 'playing', 'ended'], default: 'waiting' },
+    config: {
+        mode: { type: String, default: 'classic' },                  // 游戏模式
+        difficulty: { type: String, default: 'normal' }              // 难度
     },
-    roomOwner: {
-        type: Object,
-        required: true
-    },
-    maxPlayerCount: {
-        type: Number,
-        default: 6,
-        max: 6,
-        min: 1
-    },
-    playerList:
-    {
-        type: Array,
-        default: []
-    },
-    isPlaying: {
-        type: Boolean,
-        default: false
-    },
-    isPrivate: {
-        type: Boolean,
-        default: false
-    },
-    password: {
-        type: String,
-        default: null
-    },
-    mapType: {
-        type: Number,
-        default: 0
-    }
+    createTime: { type: Date, default: Date.now },
+    updateTime: { type: Date, default: Date.now }
 });
 
-const Lobby = mongoose.model('Lobby', LobbySchema);
+// 自动更新时间戳
+LobbySchema.pre('save', function (next) {
+    this.updateTime = new Date();
+    next();
+});
 
-module.exports = Lobby; 
+module.exports = mongoose.model('Lobby', LobbySchema);
