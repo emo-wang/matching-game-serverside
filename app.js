@@ -12,6 +12,7 @@ var redisManager = require('./public/javascripts/redisManager');
 var usersRoutes = require('./api/routes/users/userRoutes');
 var lobbiesRoutes = require('./api/routes/lobbies/lobbyRoutes')
 var authRoutes = require('./api/routes/auth/authRoutes')
+var gameRoutes = require('./api/routes/games/gameRoutes')
 
 //创建express实例
 var app = express();
@@ -52,6 +53,7 @@ app.use(cors({
 app.use('/users', usersRoutes);
 app.use('/lobbies', lobbiesRoutes);
 app.use('/auth', authRoutes);
+app.use('/game', gameRoutes)
 
 
 // catch 404 and forward to error handler

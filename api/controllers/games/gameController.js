@@ -1,33 +1,28 @@
-var roomService = require('../../services/games/gameService');
+var gameService = require('../../services/games/gameService');
 var redisManager = require('../../../public/javascripts/redisManager')
 
 async function enterRoom(req, res) {
+    console.log(`进入房间用户id`, req.user.userId)
     try {
-        res.status(201).send();
+        const room = await gameService.enterRoom(req.body.roomId, req.user.userId);
+        res.status(201).send(room);
     } catch (error) {
         res.status(400).send(error);
     }
 };
 
 async function exitRoom(req, res) {
+    console.log(`退出房间用户id`, req.user.userId)
     try {
-        res.status(200).send();
+        const room = await gameService.exitRoom(req.body.roomId, req.user.userId);
+        res.status(201).send(room);
     } catch (error) {
-        res.status(500).send(error);
-    }
-};
-
-async function startGame(req, res) {
-    try {
-        res.status(200).send();
-    } catch (error) {
-        res.status(500).send(error);
+        res.status(400).send(error);
     }
 };
 
 
 module.exports = {
     enterRoom,
-    exitRoom,
-    startGame,
+    exitRoom
 }

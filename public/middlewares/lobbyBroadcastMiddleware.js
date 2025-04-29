@@ -8,7 +8,7 @@ async function broadcastLobbyListUpdate(req, res, next) {
         if ([200, 201, 204].includes(res.statusCode)) {
             try {
                 console.log('触发lobby中间件')
-                const allLobbies = await redisManager.getAll()
+                const allLobbies = await redisManager.getAll('lobby:*')
                 wsManager.broadcast({ type: 'update-lobbies', data: Object.values(allLobbies) });
             } catch (err) {
                 console.error('广播失败:', err.message);

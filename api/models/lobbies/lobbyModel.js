@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const LobbySchema = new mongoose.Schema({
-    roomId: { type: String, required: true, unique: true },       // 房间号（6位随机数或UUID）
+    roomId: { type: Number, required: true, unique: true },       // 房间号（6位随机数或UUID）
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // 房主用户ID
     players: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

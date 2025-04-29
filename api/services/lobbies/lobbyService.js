@@ -1,15 +1,39 @@
 var Lobby = require('../../models/lobbies/lobbyModel');
+var User = require('../../models/users/userModel');
+var Game = require('../../models/games/gameModel');
 var redisManager = require('../../../public/javascripts/redisManager');
 
-// 帮你统一封装一下 Key生成器
-function getLobbyKey(id) {
-    return `lobby:${id}`;
-}
+function getGameKey(id) { return `game:${id}` }
+function getRoomKey(id) { return `lobby:${id}` }
 
-async function createLobby(lobbyData) {
-    const lobby = new Lobby(lobbyData);
-    await redisManager.set(getLobbyKey(lobby._id), lobby.toObject());
-    return lobby;
+async function createLobby(roomData, ownerId) {
+    let owner = await User.findById(ownerId).select('-password')
+
+    // 创建room
+    let room = new Lobby(roomData).toObject();
+    room.ownerId = ownerId
+    room.players.push({
+        userId: owner._id,
+        nickname: owner.nickname,
+        avatar: owner.avatar,
+        isReady: false,
+        score: 0
+    })
+
+    // 创建game
+    let game = new Game({ ownerId, ...roomData }).toObject()
+    game.players.push({
+        userId: owner._id,
+        nickname: owner.nickname,
+        score: 0,
+        online: true,
+        lastMoveAt: new Date(),
+        gameBoard: []
+    })
+
+    await redisManager.set(getGameKey(room._id), game);
+    await redisManager.set(getRoomKey(room._id), room);
+    return room;
 }
 
 async function getAllLobbies() {
@@ -18,22 +42,26 @@ async function getAllLobbies() {
 }
 
 async function getLobby(id) {
-    return await redisManager.get(getLobbyKey(id));
+    return await redisManager.get(getRoomKey(id));
 }
 
 async function updateLobby(id, lobbyData) {
-    await redisManager.set(getLobbyKey(id), lobbyData);
+    await redisManager.set(getRoomKey(id), lobbyData);
     return lobbyData;
 }
 
 async function deleteLobby(id) {
-    await redisManager.del(getLobbyKey(id));
-    return "ok";
+    await redisManager.del(getRoomKey(id));
+    await redisManager.del(getGameKey(id))
+    return { success: true };
+
 }
 
 async function deleteAllLobbies() {
+    await redisManager.delAll('game:*')
     await redisManager.delAll('lobby:*');
-    return "ok";
+    return { success: true };
+
 }
 
 module.exports = {
