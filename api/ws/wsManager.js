@@ -1,5 +1,7 @@
 var WebSocket = require('ws');
 var redisManager = require('../../public/javascripts/redisManager')
+var { initGameBoardData } = require('../../public/javascripts/initGameBoard')
+
 
 function getRoomKey(id) { return `lobby:${id}` }
 function getGameKey(id) { return `game:${id}` }
@@ -62,6 +64,9 @@ module.exports = {
 
     // key: game
     setGameWss: (key, server) => {
+        // for test
+        // const testArr = initGameBoardData(0)
+        // console.log(testArr, testArr.length, testArr[0].length)
         if (wssMap.has(key)) {
             throw new Error(`WSS with key '${key}' already exists.`);
         }
@@ -100,12 +105,19 @@ module.exports = {
                         break;
                     // 选择开始游戏
                     case `start-game`:
-                        if (newGameData.status === GAMESTATUS.PLAYING || newGameData.status === GAMESTATUS.ENDED) {
+                        if (newGameData.status === GAMESTATUS.PLAYING) {
                             console.log('wrong game status');
                             break;
                         }
                         newGameData.status = GAMESTATUS.PLAYING
                         newRoomData.status = GAMESTATUS.PLAYING
+                        // init game board
+                        // 现在会保存所有用户的game board，以后再优化
+                        const gameBoard = initGameBoardData(0)
+                        newGameData.players.forEach((player) => {
+                            player.gameBoard = gameBoard
+                        })
+
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
                         module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData });

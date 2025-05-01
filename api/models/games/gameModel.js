@@ -13,6 +13,11 @@ const GameSchema = new mongoose.Schema({
         level: { type: Number }
     },
 
+    config: {
+        mode: { type: String, default: 'classic' },                  // 游戏模式
+        difficulty: { type: String, default: 'normal' }              // 难度
+    },
+
     // gameBoard: {
     //     type: Array,
     //     default: []
