@@ -2,6 +2,7 @@ var lobbyService = require('../../services/lobbies/lobbyService');
 var redisManager = require('../../../public/javascripts/redisManager')
 
 function getRoomKey(id) { return `lobby:${id}` }
+function getGameKey(id) { return `game:${id}` }
 
 async function createLobby(req, res) {
     const currentUserId = req.user.userId; // 从 token 拿的 id
@@ -35,7 +36,7 @@ async function getLobby(req, res) {
 };
 
 async function updateLobby(req, res) {
-    const id = req.body.ownerId;  // 前端传的 id
+    const id = req.body.owner.userId;  // 前端传的 id
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
@@ -55,7 +56,7 @@ async function updateLobby(req, res) {
 
 async function deleteLobby(req, res) {
     const lobby = await redisManager.get(getRoomKey(req.params.id));
-    const id = lobby.ownerId;  // 前端传的 id
+    const id = lobby.owner.userId;  // 前端传的 id
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {

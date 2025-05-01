@@ -1,23 +1,31 @@
-var wsManager = require('../../api/ws/wsManager');
-var redisManager = require('../../public/javascripts/redisManager')
-
-
+const wsManager = require('../../api/ws/wsManager');
+const redisManager = require('../../public/javascripts/redisManager');
 
 async function broadcastLobbyListUpdate(req, res, next) {
-    res.on('finish', async () => {
+    res.once('finish', async () => { // 注意用 .once，避免多次触发
         if ([200, 201, 204].includes(res.statusCode)) {
             try {
-                console.log('触发lobby中间件')
-                const allLobbies = await redisManager.getAll('lobby:*')
-                wsManager.broadcast({ type: 'update-lobbies', data: Object.values(allLobbies) });
+                console.log('触发 lobby 更新中间件');
+
+                const allLobbies = await redisManager.getAll('lobby:*');
+                const lobbyWSS = wsManager.getWSS('lobby');
+
+                if (lobbyWSS) {
+                    wsManager.broadcast('lobby', {
+                        type: 'update-lobbies',
+                        data: Object.values(allLobbies)
+                    });
+                } else {
+                    console.warn('lobby 的 WebSocket 服务不存在，无法广播');
+                }
             } catch (err) {
-                console.error('广播失败:', err.message);
+                console.error('广播大厅列表失败:', err.message);
             }
         }
     });
-    next();
-};
 
+    next();
+}
 
 module.exports = {
     broadcastLobbyListUpdate

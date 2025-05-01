@@ -18,12 +18,19 @@ var gameRoutes = require('./api/routes/games/gameRoutes')
 var app = express();
 
 
-// 创建ws实例
-const wsServer = http.createServer(app);
-const wss = wsManager.setWSS(wsServer);
-wsServer.listen(3001, () => {
-    console.log('HTTP+WebSocket 服务运行于 http://localhost:3001');
+// 创建ws实例（这个目前是游戏大厅再使用）
+const wsLobbyServer = http.createServer(app);
+const lobbywss = wsManager.setLobbyWss('lobby', wsLobbyServer);
+wsLobbyServer.listen(3001, () => {
+    console.log('lobbyws 服务运行于 http://localhost:3001');
 });
+
+// ws实例（目前是用于所有游戏房间）
+const wsGameServer = http.createServer(app);
+const gameWss = wsManager.setGameWss('game', wsGameServer)
+wsGameServer.listen(4001, () => {
+    console.log('gamews 服务运行于 http://localhost:4001');
+})
 
 // 初始化数据库连接
 connectDB();

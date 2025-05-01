@@ -25,7 +25,7 @@ async function enterRoom(roomId, userId) {
     // 更新game数据
     game.players.push({
         userId: user._id,
-        nickname: user.nickname,
+        username: user.username,
         score: 0,
         online: true,
         lastMoveAt: new Date(),
@@ -35,7 +35,7 @@ async function enterRoom(roomId, userId) {
     // 更新room数据
     room.players.push({
         userId: user._id,
-        nickname: user.nickname,
+        username: user.username,
         avatar: user.avatar,
         isReady: false,
         score: 0
@@ -57,7 +57,7 @@ async function exitRoom(roomId, userId) {
 
     if (!game) throw new Error("RoomId Error");
 
-    if (game.status !== 'waiting') throw new Error("非等待时间不能退出游戏")
+    if (game.status !== 'waiting' && game.status!=='ended') throw new Error("游戏进行中不能退出游戏")
 
     // 更新game数据
     game.players = game.players.filter(player => player.userId !== userId)

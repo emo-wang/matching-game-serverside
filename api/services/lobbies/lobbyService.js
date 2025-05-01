@@ -11,20 +11,34 @@ async function createLobby(roomData, ownerId) {
 
     // 创建room
     let room = new Lobby(roomData).toObject();
-    room.ownerId = ownerId
+    room.owner = {
+        userId: owner._id,
+        username: owner.username,
+        avatar: owner.avatar,
+        level: owner.level
+    }
+
     room.players.push({
         userId: owner._id,
-        nickname: owner.nickname,
+        username: owner.username,
         avatar: owner.avatar,
         isReady: false,
         score: 0
     })
 
     // 创建game
-    let game = new Game({ ownerId, ...roomData }).toObject()
+    let game = new Game({
+        owner: {
+            userId: owner._id,
+            username: owner.username,
+            avatar: owner.avatar,
+            level: owner.level
+        }, ...roomData
+    }).toObject()
+
     game.players.push({
         userId: owner._id,
-        nickname: owner.nickname,
+        username: owner.username,
         score: 0,
         online: true,
         lastMoveAt: new Date(),

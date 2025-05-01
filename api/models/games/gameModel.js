@@ -2,14 +2,30 @@ const mongoose = require('mongoose');
 
 const GameSchema = new mongoose.Schema({
     roomId: { type: Number, required: true, unique: true },       // 房间号
+    owner: {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        username: { type: String, required: true },
+        avatar: { type: String },
+        level: { type: Number }
+    },
 
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // 房主ID
+    // gameBoard: {
+    //     type: Array,
+    //     default: []
+    // },
+
     players: [{
         userId: { type: String },
-        nickname: { type: String },
+        username: { type: String, required: true },
         score: { type: Number, default: 0 },
         online: { type: Boolean, default: true },
         lastMoveAt: { type: Date, default: Date.now },
+        // 暂时不设置timeLimit
+        // timeLimit:{type:Number, default:20},
         gameBoard: {
             type: Array,
             default: []

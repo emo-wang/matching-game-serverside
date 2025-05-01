@@ -2,10 +2,20 @@ const mongoose = require('mongoose');
 
 const LobbySchema = new mongoose.Schema({
     roomId: { type: Number, required: true, unique: true },       // 房间号（6位随机数或UUID）
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // 房主用户ID
+    owner: {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        username: { type: String, required: true },
+        avatar: { type: String },
+        level: { type: Number }
+    },
+    
     players: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        nickname: String,
+        username: { type: String, required: true },
         avatar: String,
         isReady: { type: Boolean, default: false },
         score: { type: Number, default: 0 }

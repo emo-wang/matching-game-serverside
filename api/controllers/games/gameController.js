@@ -1,8 +1,9 @@
 var gameService = require('../../services/games/gameService');
 var redisManager = require('../../../public/javascripts/redisManager')
+var wsManager = require('../../ws/wsManager')
 
 async function enterRoom(req, res) {
-    console.log(`进入房间用户id`, req.user.userId)
+    // console.log(`进入房间用户id`, req.user.userId)
     try {
         const room = await gameService.enterRoom(req.body.roomId, req.user.userId);
         res.status(201).send(room);
@@ -12,7 +13,7 @@ async function enterRoom(req, res) {
 };
 
 async function exitRoom(req, res) {
-    console.log(`退出房间用户id`, req.user.userId)
+    // console.log(`退出房间用户id`, req.user.userId)
     try {
         const room = await gameService.exitRoom(req.body.roomId, req.user.userId);
         res.status(201).send(room);
@@ -24,5 +25,5 @@ async function exitRoom(req, res) {
 
 module.exports = {
     enterRoom,
-    exitRoom
+    exitRoom,
 }
