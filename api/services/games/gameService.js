@@ -14,6 +14,7 @@ async function enterRoom(roomId, userId) {
     if (!game) throw new Error("RoomId Error");
 
     if (game.status !== 'waiting') throw new Error("房间已经开始游戏或已经结束")
+
     if (game.players.length >= room.maxPlayers) throw new Error("房间人数已满")
 
     game.players.forEach(player => {

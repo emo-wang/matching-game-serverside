@@ -66,7 +66,7 @@ module.exports = {
     setGameWss: (key, server) => {
         // for test
         // const testArr = initGameBoardData(0)
-        // console.log(testArr, testArr.length, testArr[0].length)
+
         if (wssMap.has(key)) {
             throw new Error(`WSS with key '${key}' already exists.`);
         }
@@ -87,22 +87,29 @@ module.exports = {
                     return;
                 }
 
-                console.log(`[${key}] 收到消息对象:`, payload);
-
                 if (!payload?.data?.roomId) {
                     console.log('roomId is null')
-                    return
+                    throw new Error("roomId is null");
                 }
+
+                console.log(`[${key}] 收到roomId:`, payload.data.roomId);
                 const roomId = payload.data.roomId
-                console.log(`roomId`, roomId)
                 let newGameData = await redisManager.get(getGameKey(roomId))
                 let newRoomData = await redisManager.get(getRoomKey(roomId))
 
-                // TODO: 将来可能需要一些防作弊系统
+                // TODO: 防作弊
                 switch (payload.type) {
-                    case `welcome`:
-                        module.exports.broadcast(key, { type: 'welcome', message: payload });
+                    // TODO: 进入房间，如果游戏已经开始，则只能观战
+                    case `enter-room`:
+                        // 挂载房间号，用于broadcast
+                        ws.roomId = payload.data.roomId
+                        if (newGameData.status === GAMESTATUS.PLAYING) {
+                            module.exports.broadcast('game', { type: 'enter-room', message: `success`, data: newGameData }, roomId);
+                            module.exports.broadcast('lobby', { type: 'enter-room', message: `success`, data: newRoomData });
+                            break;
+                        }
                         break;
+
                     // 选择开始游戏
                     case `start-game`:
                         if (newGameData.status === GAMESTATUS.PLAYING) {
@@ -112,7 +119,7 @@ module.exports = {
                         newGameData.status = GAMESTATUS.PLAYING
                         newRoomData.status = GAMESTATUS.PLAYING
                         // init game board
-                        // 现在会保存所有用户的game board，以后再优化
+                        // TODO: 优化
                         const gameBoard = initGameBoardData(0)
                         newGameData.players.forEach((player) => {
                             player.gameBoard = gameBoard
@@ -120,9 +127,31 @@ module.exports = {
 
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
-                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData });
+                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData }, roomId);
                         module.exports.broadcast('lobby', { type: 'start-game', message: `success`, data: newRoomData });
                         break;
+
+                    case 'update-game':
+                        if (newGameData.status !== GAMESTATUS.PLAYING) {
+                            console.log('wrong game status');
+                            break;
+                        }
+                        const { eliminatedNode: pArr, userId } = payload.data // 每次消除都是一对
+                        console.log(pArr, userId)
+                        newGameData.players.forEach((player) => {
+                            if (player.userId === userId) {
+                                for (let i = 0; i < pArr.length; i++) {
+                                    const [x, y] = pArr[i]
+                                    player.gameBoard[x][y] = -1
+                                }
+                            }
+                        })
+                        redisManager.set(getGameKey(roomId), newGameData);
+                        module.exports.broadcast('game', { type: 'update-game', message: 'success', data: { pArr, userId } }, roomId);
+
+                        // 更新其他用户
+                        break;
+
                     // 游戏暂停
                     case 'pause-game':
                         if (newGameData.status !== GAMESTATUS.PLAYING) {
@@ -133,9 +162,10 @@ module.exports = {
                         newRoomData.status = GAMESTATUS.PAUSE
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
-                        module.exports.broadcast('game', { type: 'pause-game', message: `success`, data: newGameData });
+                        module.exports.broadcast('game', { type: 'pause-game', message: `success`, data: newGameData }, roomId);
                         module.exports.broadcast('lobby', { type: 'pause-game', message: `success`, data: newRoomData });
                         break;
+
                     // 结束游戏
                     case 'end-game':
                         if (newGameData.status !== GAMESTATUS.PLAYING) {
@@ -146,7 +176,7 @@ module.exports = {
                         newRoomData.status = GAMESTATUS.ENDED
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
-                        module.exports.broadcast('game', { type: 'end-game', message: `success`, data: newGameData });
+                        module.exports.broadcast('game', { type: 'end-game', message: `success`, data: newGameData }, roomId);
                         module.exports.broadcast('lobby', { type: 'end-game', message: `success`, data: newRoomData });
                         break;
 
@@ -184,7 +214,7 @@ module.exports = {
      * @param {string} key
      * @param {object} data
      */
-    broadcast: (key, data) => {
+    broadcast: (key, data, roomId = null) => {
         const wss = wssMap.get(key);
         if (!wss) {
             console.warn(`No WSS found for key '${key}'`);
@@ -194,11 +224,15 @@ module.exports = {
         const msg = JSON.stringify(data);
 
         wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
+            const match = client.readyState === WebSocket.OPEN &&
+                (!roomId || client.roomId === roomId); //如果 roomId 匹配，或不传默认全发
+
+            if (match) {
                 client.send(msg);
             }
         });
     },
+
 
     /**
      * 关闭并删除某个 WSS
