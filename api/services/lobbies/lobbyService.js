@@ -8,6 +8,8 @@ function getRoomKey(id) { return `lobby:${id}` }
 
 async function createLobby(roomData, ownerId) {
     let owner = await User.findById(ownerId).select('-password')
+    if (!owner) { throw new Error("user unfounded!") }
+    // TODO:需要添加一个储存房间号的数据在redis里，用来检测是否有重复的房间号
 
     // 创建room
     let room = new Lobby(roomData).toObject();

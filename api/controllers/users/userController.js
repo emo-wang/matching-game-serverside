@@ -23,7 +23,7 @@ async function getUser(req, res) {
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
-        return res.status(403).json({ message: '不能获取别人的信息' });
+        return res.status(403).json({ message: 'Wrong user id' });
     }
 
     try {
@@ -62,15 +62,15 @@ async function deleteUser(req, res) {
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
-        return res.status(403).json({ message: '不能删除别人的信息' });
+        return res.status(403).json({ message: 'Wrong user id' });
     }
-    
+
     try {
         const user = await userService.deleteUser(req.params.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.status(204).send();
+        res.status(204).send({ message: 'User deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -80,7 +80,7 @@ async function deleteAllUsers(req, res) {
     try {
         const users = await userService.deleteAllUsers();
         if (!users) {
-            return res.status(404).send();
+            return res.status(404).send('Wrong user id');
         }
         res.status(204).send("All users deleted successfully");
     } catch (error) {

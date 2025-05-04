@@ -10,7 +10,7 @@ async function createLobby(req, res) {
         const lobby = await lobbyService.createLobby(req.body, currentUserId);
         res.status(201).send(lobby);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(401).send({ message: error.message });
     }
 };
 
@@ -19,7 +19,7 @@ async function getAllLobbies(req, res) {
         const lobbies = await lobbyService.getAllLobbies();
         res.status(200).send(lobbies);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).send({ message: error.message });
     }
 };
 
@@ -27,11 +27,12 @@ async function getLobby(req, res) {
     try {
         const lobby = await lobbyService.getLobby(req.params.id);
         if (!lobby) {
-            return res.status(404).send();
+            res.status(404).send({ message: 'Room unfounded!' });
+            return
         }
         res.status(200).send(lobby);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).send({ message: error.message });
     }
 };
 
@@ -40,17 +41,17 @@ async function updateLobby(req, res) {
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
-        return res.status(403).json({ message: '您不是房主' });
+        return res.status(403).send({ message: 'You are not the room owner!' });
     }
 
     try {
         const lobby = await lobbyService.updateLobby(req.params.id, req.body);
         if (!lobby) {
-            return res.status(404).send();
+            return res.status(404).send({ message: 'Room unfounded!' });
         }
-        res.send(lobby);
+        res.status(201).send(lobby);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(400).send({ message: error.message });
     }
 };
 
@@ -60,17 +61,17 @@ async function deleteLobby(req, res) {
     const currentUserId = req.user.userId; // 从 token 拿的 id
 
     if (id !== currentUserId) {
-        return res.status(403).json({ message: '您不是房主' });
+        return res.status(403).send({ message: 'You are not the room owner!' });
     }
 
     try {
         const lobby = await lobbyService.deleteLobby(req.params.id);
         if (!lobby) {
-            return res.status(404).send();
+            return res.status(404).send({ message: 'Lobby unfounded!' });
         }
         res.status(200).send({ message: 'Lobby deleted successfully' });
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).send({ message: error.message });
     }
 };
 
@@ -78,11 +79,11 @@ async function deleteAllLobbies(req, res) {
     try {
         const lobby = await lobbyService.deleteAllLobbies();
         if (!lobby) {
-            return res.status(404).send();
+            return res.status(404).send({ message: 'Lobby unfounded!' });
         }
         res.status(200).send({ message: 'All lobbies deleted successfully' });
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).send({ message: error.message });
     }
 }
 

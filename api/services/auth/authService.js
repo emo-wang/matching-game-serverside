@@ -11,7 +11,7 @@ async function login(userData) {
     const user = await User.findOne({ username }); // 用 Mongoose 正确方式找用户
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
-        throw new Error('用户名或密码错误');
+        throw new Error('Wrong username or password');
     }
 
     const updatedUser = await User.findOne({ username }).select('-password');

@@ -119,8 +119,7 @@ module.exports = {
                         newGameData.status = GAMESTATUS.PLAYING
                         newRoomData.status = GAMESTATUS.PLAYING
                         // init game board
-                        // TODO: 优化
-                        const gameBoard = initGameBoardData(0)
+                        const gameBoard = initGameBoardData(1)
                         newGameData.players.forEach((player) => {
                             player.gameBoard = gameBoard
                         })
