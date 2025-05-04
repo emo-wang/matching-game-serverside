@@ -7,7 +7,7 @@ async function enterRoom(req, res) {
         res.status(201).send(room);
     } catch (error) {
         console.log(error)
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ message: error.message });
     }
 };
 
@@ -17,7 +17,7 @@ async function exitRoom(req, res) {
         const room = await gameService.exitRoom(req.body.roomId, req.user.userId);
         res.status(201).send(room);
     } catch (error) {
-        res.status(400).send({ error: error.message });
+        res.status(400).send({ message: error.message });
     }
 };
 

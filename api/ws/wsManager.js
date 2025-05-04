@@ -136,7 +136,7 @@ module.exports = {
                             break;
                         }
                         const { eliminatedNode: pArr, userId } = payload.data // 每次消除都是一对
-                        console.log(pArr, userId)
+                        // console.log(pArr, userId)
                         newGameData.players.forEach((player) => {
                             if (player.userId === userId) {
                                 for (let i = 0; i < pArr.length; i++) {

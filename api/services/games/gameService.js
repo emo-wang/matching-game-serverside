@@ -13,13 +13,13 @@ async function enterRoom(roomId, userId) {
 
     if (!game) throw new Error("RoomId Error");
 
-    if (game.status !== 'waiting') throw new Error("房间已经开始游戏或已经结束")
+    if (game.status !== 'waiting') throw new Error("Game is already started or ended")
 
-    if (game.players.length >= room.maxPlayers) throw new Error("房间人数已满")
+    if (game.players.length >= room.maxPlayers) throw new Error("Current room is full")
 
     game.players.forEach(player => {
         if (player.userId === userId) {
-            throw new Error("该用户已进入房间")
+            throw new Error("You are already in the room!")
         }
     });
 
@@ -58,7 +58,8 @@ async function exitRoom(roomId, userId) {
 
     if (!game) throw new Error("RoomId Error");
 
-    if (game.status !== 'waiting' && game.status!=='ended') throw new Error("游戏进行中不能退出游戏")
+    // TODO: 强行退出也可以，就是会有惩罚！
+    if (game.status !== 'waiting' && game.status!=='ended') throw new Error("Game is already started")
 
     // 更新game数据
     game.players = game.players.filter(player => player.userId !== userId)
