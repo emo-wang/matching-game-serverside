@@ -92,18 +92,20 @@ module.exports = {
                     throw new Error("roomId is null");
                 }
 
-                // console.log(`[${key}] 收到roomId:`, payload.data.roomId);
+                console.log(`[${key}] 收到roomId:`, payload.data.roomId);
                 const roomId = payload.data.roomId
                 let newGameData = await redisManager.get(getGameKey(roomId))
                 let newRoomData = await redisManager.get(getRoomKey(roomId))
 
                 // TODO: 防作弊
                 switch (payload.type) {
-                    // TODO: 进入房间，如果游戏已经开始，则只能观战
                     case `enter-room`:
-                        // 挂载房间号，用于broadcast
+                        // 用户进入房间之后，客户端连接上gamews收到welcome消息之后，客户端发送enter-room以挂载roomId
+                        // 注意：这个ws不是wss，是每个独立的客户端和服务端的连接。
                         ws.roomId = payload.data.roomId
-                        if (newGameData.status === GAMESTATUS.PLAYING) {
+
+                        // 1. 其他用户进入房间时广播。2. 自己进入房间时广播获取游戏数据
+                        if (newGameData.status === GAMESTATUS.WAITING) {
                             module.exports.broadcast('game', { type: 'enter-room', message: `success`, data: newGameData }, roomId);
                             module.exports.broadcast('lobby', { type: 'enter-room', message: `success`, data: newRoomData });
                             break;
@@ -126,7 +128,7 @@ module.exports = {
 
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
-                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData }, roomId);
+                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData, ws }, roomId);
                         module.exports.broadcast('lobby', { type: 'start-game', message: `success`, data: newRoomData });
                         break;
 
