@@ -92,7 +92,7 @@ module.exports = {
                     throw new Error("roomId is null");
                 }
 
-                console.log(`[${key}] 收到roomId:`, payload.data.roomId);
+                // console.log(`[${key}] 收到roomId:`, payload.data.roomId);
                 const roomId = payload.data.roomId
                 let newGameData = await redisManager.get(getGameKey(roomId))
                 let newRoomData = await redisManager.get(getRoomKey(roomId))
@@ -119,7 +119,7 @@ module.exports = {
                         newGameData.status = GAMESTATUS.PLAYING
                         newRoomData.status = GAMESTATUS.PLAYING
                         // init game board
-                        const gameBoard = initGameBoardData(1)
+                        const gameBoard = initGameBoardData(0)
                         newGameData.players.forEach((player) => {
                             player.gameBoard = gameBoard
                         })
@@ -135,7 +135,7 @@ module.exports = {
                             console.log('wrong game status');
                             break;
                         }
-                        const { eliminatedNode: pArr, userId } = payload.data // 每次消除都是一对
+                        const { eliminatedNode: pArr, userId, isEnded } = payload.data // 每次消除都是一对
                         // console.log(pArr, userId)
                         newGameData.players.forEach((player) => {
                             if (player.userId === userId) {
@@ -145,8 +145,16 @@ module.exports = {
                                 }
                             }
                         })
+
+                        if (isEnded) {
+                            newGameData.status = GAMESTATUS.ENDED
+                            newRoomData.status = GAMESTATUS.ENDED
+                            redisManager.set(getRoomKey(roomId), newRoomData)
+                            module.exports.broadcast('lobby', { type: 'end-game', message: `success`, data: newRoomData });
+                        }
                         redisManager.set(getGameKey(roomId), newGameData);
-                        module.exports.broadcast('game', { type: 'update-game', message: 'success', data: { pArr, userId } }, roomId);
+                        module.exports.broadcast('game', { type: 'update-game', message: 'success', data: { pArr, userId, isEnded } }, roomId);
+
 
                         // 更新其他用户
                         break;

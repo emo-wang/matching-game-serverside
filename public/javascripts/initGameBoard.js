@@ -67,11 +67,19 @@ function shuffleArray(array) {
 const typeMap = [
     {
         mapId: 0,
-        rows: 12,
-        cols: 20,
-        typeCount: 30, // 有多少不同的格子
-        totalCount: 240 // 格子总数
-    }, {
+        rows: 4,
+        cols: 5,
+        typeCount: 5, // 有多少不同的格子
+        totalCount: 20 // 格子总数
+    },
+    // {
+    //     mapId: 0,
+    //     rows: 12,
+    //     cols: 20,
+    //     typeCount: 30, // 有多少不同的格子
+    //     totalCount: 240 // 格子总数
+    // },
+    {
         mapId: 1,
         rows: 11,
         cols: 19,
