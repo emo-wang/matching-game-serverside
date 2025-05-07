@@ -2,7 +2,7 @@ const wsManager = require('../../api/ws/wsManager');
 const redisManager = require('../../public/javascripts/redisManager');
 
 async function broadcastLobbyListUpdate(req, res, next) {
-    res.once('finish', async () => { // 注意用 .once，避免多次触发
+    res.once('finish', async () => {
         if ([200, 201, 204].includes(res.statusCode)) {
             try {
                 console.log('触发 lobby 更新中间件');

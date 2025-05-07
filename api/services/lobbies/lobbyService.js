@@ -25,7 +25,8 @@ async function createLobby(roomData, ownerId) {
         username: owner.username,
         avatar: owner.avatar,
         isReady: false,
-        score: 0
+        score: 0,
+        level: owner.level
     })
 
     // 创建game
@@ -44,7 +45,9 @@ async function createLobby(roomData, ownerId) {
         score: 0,
         online: true,
         lastMoveAt: new Date(),
-        gameBoard: []
+        gameBoard: [],
+        isReady: false,
+        level: owner.level
     })
 
     await redisManager.set(getGameKey(room._id), game);

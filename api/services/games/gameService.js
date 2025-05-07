@@ -1,5 +1,6 @@
 var User = require('../../models/users/userModel');
 var redisManager = require('../../../public/javascripts/redisManager');
+var wsManager = require('../../ws/wsManager')
 
 function getGameKey(id) { return `game:${id}` }
 function getRoomKey(id) { return `lobby:${id}` }
@@ -17,6 +18,11 @@ async function enterRoom(roomId, userId) {
 
     if (game.players.length >= room.maxPlayers) throw new Error("Current room is full")
 
+    if (game.players.length !== 0) {
+        await redisManager.persist(getRoomKey(roomId));
+        await redisManager.persist(getGameKey(roomId));
+    }
+
     game.players.forEach(player => {
         if (player.userId === userId) {
             throw new Error("You are already in the room!")
@@ -30,7 +36,9 @@ async function enterRoom(roomId, userId) {
         score: 0,
         online: true,
         lastMoveAt: new Date(),
-        gameBoard: []
+        gameBoard: [],
+        isReady: false,
+        level: user.level
     })
 
     // 更新room数据
@@ -39,8 +47,21 @@ async function enterRoom(roomId, userId) {
         username: user.username,
         avatar: user.avatar,
         isReady: false,
-        score: 0
+        score: 0,
+        level: user.level
     })
+
+    // 如果没有房主则成为新的房主
+    if (!room.owner?.userId) {
+        const newOwner = {
+            userId: user._id,
+            username: user.username,
+            avatar: user.avatar,
+            level: user.level
+        }
+        room.owner = newOwner
+        game.owner = newOwner
+    }
 
     // console.log(room, game)
 
@@ -53,22 +74,60 @@ async function enterRoom(roomId, userId) {
 async function exitRoom(roomId, userId) {
     let game = await redisManager.get(getGameKey(roomId))
     let room = await redisManager.get(getRoomKey(roomId))
-    let user = await User.findById(userId).select('-password')
-    // user._id是objectID
 
     if (!game) throw new Error("RoomId Error");
 
     // TODO: 强行退出也可以，就是会有惩罚！
-    if (game.status !== 'waiting' && game.status!=='ended') throw new Error("Game is already started")
+    if (game.status !== 'waiting' && game.status !== 'ended') throw new Error("Game is already started")
 
-    // 更新game数据
     game.players = game.players.filter(player => player.userId !== userId)
-
-    // 更新room数据
     room.players = room.players.filter(player => player.userId !== userId)
-    // console.log(room, game)
 
-    // TODO: 如果当前玩家为0，删除房间
+    // TODO: 如果房主离开房间，设置玩家列表中第一个玩家为房主
+    if (game.owner.userId === userId) {
+        const player = game.players[0]
+        const newOwner = player ? {
+            userId: player.userId,
+            username: player.username,
+            avatar: player.avatar,
+            level: player.level
+        } : {
+            userId: null,
+            username: null,
+            avatar: null,
+            level: null
+        }
+        game.owner = newOwner;
+        room.owner = newOwner
+    }
+
+    if (game.players.length === 0) {
+        const ttl = 600;
+
+        await redisManager.expire(getRoomKey(roomId), ttl);
+        await redisManager.expire(getGameKey(roomId), ttl);
+
+        // WARNING: 设置 JS 延迟任务，服务重启不保证可靠，重度任务请用队列系统
+        setTimeout(async () => {
+            const latestGame = await redisManager.get(getGameKey(roomId));
+            if (latestGame && latestGame.players.length === 0) {
+                await redisManager.del(getRoomKey(roomId));
+                await redisManager.del(getGameKey(roomId));
+
+                const allLobbies = await redisManager.getAll('lobby:*');
+                const lobbyWSS = wsManager.getWSS('lobby');
+
+                if (lobbyWSS) {
+                    wsManager.broadcast('lobby', {
+                        type: 'update-lobbies',
+                        data: Object.values(allLobbies)
+                    });
+                } else {
+                    console.warn('lobby ws does not exit');
+                }
+            }
+        }, ttl * 1000);
+    }
 
     await redisManager.set(getRoomKey(roomId), room)
     await redisManager.set(getGameKey(roomId), game)

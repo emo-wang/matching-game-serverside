@@ -35,7 +35,9 @@ const GameSchema = new mongoose.Schema({
         gameBoard: {
             type: Array,
             default: []
-        }
+        },
+        level: { type: Number },
+        isReady: { type: Boolean, default: false }
     }],
 
     status: {

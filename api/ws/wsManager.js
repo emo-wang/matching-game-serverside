@@ -92,8 +92,9 @@ module.exports = {
                     throw new Error("roomId is null");
                 }
 
-                console.log(`[${key}] 收到roomId:`, payload.data.roomId);
+                // console.log(`[${key}] 收到roomId:`, payload.data.roomId);
                 const roomId = payload.data.roomId
+                const userId = payload?.data?.userId
                 let newGameData = await redisManager.get(getGameKey(roomId))
                 let newRoomData = await redisManager.get(getRoomKey(roomId))
 
@@ -103,7 +104,7 @@ module.exports = {
                         // 用户进入房间之后，客户端连接上gamews收到welcome消息之后，客户端发送enter-room以挂载roomId
                         // 注意：这个ws不是wss，是每个独立的客户端和服务端的连接。
                         ws.roomId = payload.data.roomId
-
+                        ws.userId = payload.data.userId
                         // 1. 其他用户进入房间时广播。2. 自己进入房间时广播获取游戏数据
                         if (newGameData.status === GAMESTATUS.WAITING) {
                             module.exports.broadcast('game', { type: 'enter-room', message: `success`, data: newGameData }, roomId);
@@ -112,10 +113,36 @@ module.exports = {
                         }
                         break;
 
-                    // 选择开始游戏
+                    // 用户准备或取消准备
+                    // TDOO: 优化，玩家进入房间、退出房间、准备或者取消准备，都不需要把整个游戏数据发一遍
+                    case `player-ready`:
+                        if (newGameData.status === GAMESTATUS.PLAYING) {
+                            console.log('wrong game status');
+                            break;
+                        }
+                        const { isReady } = payload.data
+                        if (!userId || isReady === null) {
+                            console.log('data error');
+                            break;
+                        }
+                        newGameData.players.forEach((player) => {
+                            if (player.userId === userId) {
+                                player.isReady = isReady
+                            }
+                        })
+                        redisManager.set(getGameKey(roomId), newGameData)
+                        module.exports.broadcast('game', { type: 'player-ready', message: `success`, data: newGameData }, roomId);
+                        break;
+
+                    // 开始游戏
                     case `start-game`:
                         if (newGameData.status === GAMESTATUS.PLAYING) {
                             console.log('wrong game status');
+                            break;
+                        }
+
+                        if (newGameData.players.some(p => !p.isReady)) {
+                            console.log('not all users are ready')
                             break;
                         }
                         newGameData.status = GAMESTATUS.PLAYING
@@ -128,16 +155,21 @@ module.exports = {
 
                         redisManager.set(getGameKey(roomId), newGameData)
                         redisManager.set(getRoomKey(roomId), newRoomData)
-                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData, ws }, roomId);
+                        module.exports.broadcast('game', { type: 'start-game', message: `success`, data: newGameData }, roomId);
                         module.exports.broadcast('lobby', { type: 'start-game', message: `success`, data: newRoomData });
                         break;
 
+                    // 游戏开始后更新状态
                     case 'update-game':
                         if (newGameData.status !== GAMESTATUS.PLAYING) {
                             console.log('wrong game status');
                             break;
                         }
-                        const { eliminatedNode: pArr, userId, isEnded } = payload.data // 每次消除都是一对
+                        const { eliminatedNode: pArr, isEnded } = payload.data // 每次消除都是一对
+                        if (!userId || !pArr) {
+                            console.log('data error');
+                            break;
+                        }
                         // console.log(pArr, userId)
                         newGameData.players.forEach((player) => {
                             if (player.userId === userId) {
@@ -156,9 +188,6 @@ module.exports = {
                         }
                         redisManager.set(getGameKey(roomId), newGameData);
                         module.exports.broadcast('game', { type: 'update-game', message: 'success', data: { pArr, userId, isEnded } }, roomId);
-
-
-                        // 更新其他用户
                         break;
 
                     // 游戏暂停
@@ -195,9 +224,25 @@ module.exports = {
 
             });
 
+            ws.on('close', async () => {
+                console.log(`[${key}] 客户端断开连接`, ws);
+                const { userId, roomId } = ws
+                console.log(userId, roomId)
 
-            ws.on('close', () => {
-                console.log(`[${key}] 客户端断开连接`);
+                let newGameData = await redisManager.get(getGameKey(roomId))
+                let newRoomData = await redisManager.get(getRoomKey(roomId))
+
+                if (!newGameData.players.some(p => p.userId === userId)) return;
+                // 用户异常退出
+                // 逻辑和gameService.exitRoom相似
+                newGameData.players = newGameData.players.filter(player => player.userId !== userId)
+                newRoomData.players = newRoomData.players.filter(player => player.userId !== userId)
+
+                redisManager.set(getGameKey(roomId), newGameData)
+                redisManager.set(getRoomKey(roomId), newRoomData)
+                module.exports.broadcast('game', { type: 'player-exit', message: `success`, data: newGameData }, roomId);
+                module.exports.broadcast('lobby', { type: 'player-exit', message: `success`, data: newRoomData });
+
             });
 
             ws.on('error', (err) => {

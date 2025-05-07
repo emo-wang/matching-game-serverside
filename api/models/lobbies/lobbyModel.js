@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const LobbySchema = new mongoose.Schema({
-    roomId: { type: Number, required: true, unique: true },       // 房间号（6位随机数或UUID）
+    roomId: { type: Number, required: true, unique: true },
     owner: {
         userId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -12,19 +12,20 @@ const LobbySchema = new mongoose.Schema({
         avatar: { type: String },
         level: { type: Number }
     },
-    
+
     players: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         username: { type: String, required: true },
         avatar: String,
         isReady: { type: Boolean, default: false },
-        score: { type: Number, default: 0 }
+        score: { type: Number, default: 0 },
+        level: { type: Number }
     }],
-    maxPlayers: { type: Number, default: 6 },                      // 最大人数，默认4人
+    maxPlayers: { type: Number, default: 6 },
     status: { type: String, enum: ['waiting', 'playing', 'ended'], default: 'waiting' },
     config: {
-        mode: { type: String, default: 'classic' },                  // 游戏模式
-        difficulty: { type: String, default: 'normal' }              // 难度
+        mode: { type: String, default: 'classic' },
+        difficulty: { type: String, default: 'normal' }
     },
     createTime: { type: Date, default: Date.now },
     updateTime: { type: Date, default: Date.now }

@@ -40,6 +40,18 @@ async function del(key) {
     await redisClient.del(key);
 }
 
+// 设置 key 的过期时间（单位：秒）
+async function expire(key, seconds) {
+    await connect();
+    await redisClient.expire(key, seconds);
+}
+
+// 移除 key 的过期时间
+async function persist(key) {
+    await connect();
+    await redisClient.persist(key);
+}
+
 // 查询所有 key（支持可选的 pattern，默认是 '*')
 async function getAll(pattern = '*') {
     await connect();
@@ -69,5 +81,7 @@ module.exports = {
     getAll,
     delAll,
     connect,
+    expire,
+    persist,
     redisClient
 };
