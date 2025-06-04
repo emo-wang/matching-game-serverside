@@ -74,6 +74,60 @@ async function delAll(pattern = '*') {
     }
 }
 
+// 安全更新 Redis 中一个 JSON 对象的字段（保持原结构类型不变）
+async function safeUpdate(key, updater) {
+    await connect();
+    const raw = await redisClient.get(key);
+    if (!raw) return { success: false, reason: 'key_not_found' };
+
+    let oldValue;
+    try {
+        oldValue = JSON.parse(raw);
+    } catch (err) {
+        return { success: false, reason: 'invalid_json' };
+    }
+
+    // 克隆原值用于对比（深拷贝）
+    const original = JSON.parse(JSON.stringify(oldValue));
+
+    // 尝试修改
+    updater(oldValue);
+
+    // 比较结构变化
+    if (!sameStructure(original, oldValue)) {
+        return { success: false, reason: 'structure_changed' };
+    }
+
+    // 写回 Redis
+    await redisClient.set(key, JSON.stringify(oldValue));
+    return { success: true };
+}
+
+function sameStructure(a, b) {
+    if (typeof a !== typeof b) return false;
+    if (a === null || b === null) return a === b;
+    if (Array.isArray(a)) {
+        if (!Array.isArray(b) || a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (!sameStructure(a[i], b[i])) return false;
+        }
+        return true;
+    }
+    if (typeof a === 'object') {
+        const keysA = Object.keys(a);
+        const keysB = Object.keys(b);
+        if (keysA.length !== keysB.length) return false;
+        for (const key of keysA) {
+            if (!b.hasOwnProperty(key)) return false;
+            if (!sameStructure(a[key], b[key])) return false;
+        }
+        return true;
+    }
+    return true; // primitive types: number, string, boolean
+}
+
+
+
 module.exports = {
     set,
     get,
@@ -83,5 +137,6 @@ module.exports = {
     connect,
     expire,
     persist,
+    safeUpdate,
     redisClient
 };

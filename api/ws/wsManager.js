@@ -107,7 +107,7 @@ module.exports = {
                         ws.userId = payload.data.userId
                         // 1. 其他用户进入房间时广播。2. 自己进入房间时广播获取游戏数据
                         if (newGameData.status === GAMESTATUS.WAITING) {
-                            module.exports.broadcast('game', { type: 'enter-room', message: `success`, data: newGameData }, roomId);
+                            module.exports.broadcast('game', { type: 'enter-room', message: `success`, data: newRoomData }, roomId);
                             module.exports.broadcast('lobby', { type: 'enter-room', message: `success`, data: newRoomData });
                             break;
                         }
@@ -121,7 +121,7 @@ module.exports = {
                             break;
                         }
                         const { isReady } = payload.data
-                        if (!userId || isReady === null) {
+                        if (!userId) {
                             console.log('data error');
                             break;
                         }
@@ -232,7 +232,7 @@ module.exports = {
                 let newGameData = await redisManager.get(getGameKey(roomId))
                 let newRoomData = await redisManager.get(getRoomKey(roomId))
 
-                if (!newGameData.players.some(p => p.userId === userId)) return;
+                if (!newGameData || !newGameData.players.some(p => p.userId === userId)) return;
                 // 用户异常退出
                 // 逻辑和gameService.exitRoom相似
                 newGameData.players = newGameData.players.filter(player => player.userId !== userId)

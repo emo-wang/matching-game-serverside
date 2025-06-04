@@ -20,6 +20,8 @@ async function createLobby(roomData, ownerId) {
         level: owner.level
     }
 
+    room.roomId = room._id.toString().slice(-6)
+
     room.players.push({
         userId: owner._id,
         username: owner.username,

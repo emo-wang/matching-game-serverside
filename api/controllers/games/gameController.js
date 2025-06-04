@@ -24,8 +24,20 @@ async function exitRoom(req, res) {
     }
 };
 
+async function updateRoom(req, res) {
+    // console.log(`更新房间用户id`, req.user.userId)
+    try {
+        const room = await gameService.updateRoom(req.body.roomId, req.body.config, req.user.userId);
+        res.status(201).send(room);
+
+    } catch (error) {
+        res.status(400).send({ message: error.message });
+    }
+};
+
 
 module.exports = {
     enterRoom,
     exitRoom,
+    updateRoom
 }

@@ -14,15 +14,9 @@ const GameSchema = new mongoose.Schema({
     },
 
     config: {
-        mode: { type: String, default: 'classic' },                  // 游戏模式
-        difficulty: { type: String, default: 'normal' },            // 难度
+        mapType: { type: Number, default: 0 },
         maxPlayers: { type: Number, default: 6 }
     },
-
-    // gameBoard: {
-    //     type: Array,
-    //     default: []
-    // },
 
     players: [{
         userId: { type: String },

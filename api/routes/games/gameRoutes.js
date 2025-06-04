@@ -7,6 +7,7 @@ const { authMiddleware } = require('../../../public/middlewares/authMiddleware')
 
 router.post('/enter', authMiddleware, broadcastLobbyListUpdate, gameController.enterRoom);
 router.post('/exit', authMiddleware, broadcastLobbyListUpdate, broadcastGameUpdate, gameController.exitRoom);
+router.post('/update', authMiddleware, broadcastLobbyListUpdate, broadcastGameUpdate, gameController.updateRoom);
 // router.post('/gamestart/:id', authMiddleware, broadcastLobbyListUpdate, roomController.startGame)
 
 module.exports = router;

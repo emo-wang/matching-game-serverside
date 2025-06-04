@@ -134,8 +134,51 @@ async function exitRoom(roomId, userId) {
     return { success: true };
 }
 
+async function updateRoom(roomId, config, userId) {
+    console.log(roomId, config)
+    // 判断房间是否存在
+    if (!roomId) {
+        throw new Error('Invalid roomId')
+    }
+
+    let gameData = await redisManager.get(getGameKey(roomId))
+    let roomData = await redisManager.get(getRoomKey(roomId))
+
+    if (!gameData || !roomData) {
+        throw new Error('Room not found in Redis')
+    }
+    
+    // 判断用户是否为房主
+    if (userId !== roomData.owner.userId) {
+        throw new Error('You are not the owner of this room')
+    }
+
+    // 判断参数传了没
+    // const { maxPlayers, mapType } = config;
+    // if (!mapType || !maxPlayers) {
+    //     throw new Error('Invalid config')
+    // }
+
+    // 尝试赋值
+    const updateGameRes = await redisManager.safeUpdate(getGameKey(roomId), (game) => { game.config = config })
+    if (!(updateGameRes).success) {
+        throw new Error('UpdateGame failed')
+    }
+    const updateRoomRes = await redisManager.safeUpdate(getRoomKey(roomId), (game) => { game.config = config })
+    if (!(updateRoomRes).success) {
+        throw new Error('UpdateRoom failed')
+    }
+
+    // 广播
+    wsManager.broadcast('game', { type: 'update-config', message: `success`, data: config }, roomId);
+
+    return { success: true };
+
+}
+
 
 module.exports = {
     enterRoom,
     exitRoom,
+    updateRoom
 };
